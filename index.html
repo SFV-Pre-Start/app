@@ -11,20 +11,22 @@
         .service-mode { border: 4px solid #dc3545; background-color: #fff8f8; }
         .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
         
+        /* Stop Screen Styling */
+        #stop-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:1000; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px; }
+        
         /* Category Styling */
         .cat-header { padding: 10px 15px; margin-top: 25px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.9rem; border-radius: 4px 4px 0 0; color: white; }
         .cat-desc { font-size: 0.75rem; background: #fff; padding: 8px 15px; border: 1px solid #ccc; border-top: none; color: #666; font-style: italic; display: block; }
         .chk-container { border: 1px solid #ccc; border-top: none; background-color: white; padding: 5px 15px; border-radius: 0 0 4px 4px; }
         
-        .cat-compliance { background-color: #212529; } /* Dark/Black */
-        .cat-a { background-color: #dc3545; } /* Red */
-        .cat-b { background-color: #fd7e14; } /* Orange */
-        .cat-c { background-color: #0d6efd; } /* Blue */
+        .cat-compliance { background-color: #212529; } 
+        .cat-a { background-color: #dc3545; } 
+        .cat-b { background-color: #fd7e14; } 
+        .cat-c { background-color: #0d6efd; } 
 
         .form-check { padding: 10px 0; border-bottom: 1px solid #f0f0f0; margin: 0; }
         .form-check:last-child { border-bottom: none; }
         .form-check-input { margin-right: 12px; transform: scale(1.2); }
-        
         .btn-xl { padding: 15px; font-size: 1.2rem; font-weight: bold; }
     </style>
 </head>
@@ -35,9 +37,6 @@
         alert("System Error:\n" + msg);
         document.getElementById('loader').classList.add('hidden');
     };
-</script>
-
-<script>
     // --- YOUR VERIFIED GOOGLE SCRIPT URL ---
     const API_URL = "https://script.google.com/macros/s/AKfycbw6xtbL7QPCvM-D4fjw6HHBo1UgEnPq4b1UEe3m9agZKwT7iTCtoxO0rU1LZdhd5QHqCw/exec"; 
 </script>
@@ -47,11 +46,18 @@
     <p class="mt-3 fw-bold text-secondary" id="loader-text">Connecting to HQ...</p>
 </div>
 
-<div class="container py-3" style="max-width: 600px;">
+<div id="stop-screen" class="hidden">
+    <h1 class="display-1">⛔</h1>
+    <h2 class="mb-4">QR Scan Required</h2>
+    <p class="lead text-muted">You must scan the vehicle QR code to access the pre-start.</p>
+    <button onclick="unlockAdmin()" class="btn btn-sm btn-link mt-5 text-muted">Admin Login (Print Codes)</button>
+</div>
+
+<div class="container py-3" id="main-container" style="max-width: 600px;">
     
     <div class="text-center mb-3">
         <h4 id="veh-title" class="fw-bold">SFV Pre-Start</h4>
-        <button class="btn btn-sm btn-link text-decoration-none" onclick="showQR()">Admin: Show QR Code</button>
+        <button id="btn-admin-qr" class="btn btn-sm btn-link text-decoration-none hidden" onclick="showQR()">Admin: Print QR Code</button>
     </div>
 
     <form id="app-form" onsubmit="submitForm(event)">
@@ -60,8 +66,8 @@
             <div class="card-body">
                 <div class="row g-2 mb-2">
                     <div class="col-8">
-                        <label class="form-label fw-bold text-muted small mb-0">VEHICLE</label>
-                        <select id="vehicle" class="form-select form-select-lg" onchange="updateUI()" required>
+                        <label class="form-label fw-bold text-muted small mb-0">VEHICLE (LOCKED)</label>
+                        <select id="vehicle" class="form-select form-select-lg" disabled required>
                             <option value="" disabled selected>Loading...</option>
                         </select>
                     </div>
@@ -199,7 +205,7 @@
         <input type="hidden" id="gps">
         <button type="submit" id="btn-submit" class="btn btn-primary w-100 btn-xl shadow">SUBMIT CHECK</button>
     </form>
-
+    
     <div id="qr-panel" class="hidden text-center mt-5 pt-4 border-top">
         <h5>Vehicle QR Code</h5>
         <div id="qrcode" class="d-flex justify-content-center my-3"></div>
@@ -238,15 +244,41 @@
                 opt.value = op; opt.text = op; dSel.add(opt);
             });
 
+            // STRICT MODE LOGIC
             const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.get('vid')) { vSel.value = urlParams.get('vid'); updateUI(); }
-            
+            const vid = urlParams.get('vid');
+
             loader.classList.add('hidden');
+
+            if(vid) {
+                // QR SCAN DETECTED: UNLOCK APP
+                vSel.value = vid; 
+                updateUI();
+                document.getElementById('stop-screen').classList.add('hidden');
+                document.getElementById('main-container').classList.remove('hidden');
+            } else {
+                // DIRECT ACCESS: SHOW LOCK SCREEN
+                document.getElementById('stop-screen').classList.remove('hidden');
+                document.getElementById('main-container').classList.add('hidden');
+            }
+            
         })
         .catch(err => {
             alert("Connection Failed. Please Reload.");
         });
     };
+
+    function unlockAdmin() {
+        const pin = prompt("Enter Admin Password:");
+        if(pin === "admin") { // Password to print stickers
+            document.getElementById('stop-screen').classList.add('hidden');
+            document.getElementById('main-container').classList.remove('hidden');
+            document.getElementById('vehicle').disabled = false; // Unlock dropdown
+            document.getElementById('btn-admin-qr').classList.remove('hidden'); // Show print button
+        } else {
+            alert("Incorrect");
+        }
+    }
 
     function updateUI() {
         const vid = document.getElementById('vehicle').value;
@@ -301,11 +333,10 @@
         const divId = document.getElementById('mode').value === 'SERVICE' ? 'service-checks' : 'daily-checks';
         
         if (divId === 'daily-checks') {
-             // Loop through header sections
              const headers = document.getElementById(divId).querySelectorAll('.cat-header');
              headers.forEach(header => {
                  checks += `<br><strong>${header.innerText}</strong><br>`;
-                 const container = header.nextElementSibling; // The div immediately after header
+                 const container = header.nextElementSibling;
                  container.querySelectorAll('.form-check').forEach(div => {
                      const cb = div.querySelector('input');
                      const lbl = div.querySelector('label').innerText;
@@ -317,7 +348,6 @@
                  });
              });
         } else {
-             // Service Mode simple loop
              document.getElementById(divId).querySelectorAll('.form-check').forEach(div => {
                  const cb = div.querySelector('input');
                  if(cb.checked) checks += `☑ ${div.querySelector('label').innerText}<br>`;
@@ -330,9 +360,9 @@
         const payload = {
             vehicle: vid, rego: veh ? veh[1] : "", driver: driver,
             mode: document.getElementById('mode').value,
-            shift: document.getElementById('shift').value, // NEW
-            odo: document.getElementById('odo').value,     // NEW
-            location: document.getElementById('location').value, // NEW
+            shift: document.getElementById('shift').value,
+            odo: document.getElementById('odo').value,
+            location: document.getElementById('location').value,
             load_type: document.getElementById('load_type').value,
             gps: document.getElementById('gps').value,
             notes: document.getElementById('notes').value,
@@ -342,20 +372,11 @@
         fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
         .then(() => {
             loader.classList.add('hidden');
-            document.body.innerHTML = `<div class="d-flex flex-column justify-content-center align-items-center vh-100 text-center bg-success text-white"><h1 class="display-1">✔</h1><h2>Success</h2><p>Pre-start emailed.</p><button onclick="window.location.reload()" class="btn btn-light mt-4">New Entry</button></div>`;
+            document.body.innerHTML = `<div class="d-flex flex-column justify-content-center align-items-center vh-100 text-center bg-success text-white"><h1 class="display-1">✔</h1><h2>Success</h2><p>Pre-start emailed.</p><button onclick="window.location.reload()" class="btn btn-light mt-4">Close / New Entry</button></div>`;
         }).catch(err => {
             loader.classList.add('hidden');
             alert("Network Error."); btn.disabled = false;
         });
-    }
-
-    function showQR() {
-        const vid = document.getElementById('vehicle').value;
-        if(!vid) return alert("Select vehicle first.");
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: window.location.href.split('?')[0] + "?vid=" + vid, width: 150, height: 150 });
-        document.getElementById('qr-panel').classList.remove('hidden');
-        document.getElementById('app-form').classList.add('hidden');
     }
 
     const toBase64 = file => new Promise((resolve, reject) => {
