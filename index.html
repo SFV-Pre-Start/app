@@ -8,8 +8,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         .hidden { display: none !important; }
-        .service-mode { border: 2px solid #dc3545; background-color: #fff8f8; }
+        .service-mode { border: 4px solid #dc3545; background-color: #fff8f8; }
         .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+        
+        /* Category Styling */
+        .cat-header { padding: 10px 15px; margin-top: 25px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.9rem; border-radius: 4px 4px 0 0; color: white; }
+        .cat-desc { font-size: 0.75rem; background: #fff; padding: 8px 15px; border: 1px solid #ccc; border-top: none; color: #666; font-style: italic; display: block; }
+        .chk-container { border: 1px solid #ccc; border-top: none; background-color: white; padding: 5px 15px; border-radius: 0 0 4px 4px; }
+        
+        .cat-compliance { background-color: #212529; } /* Dark/Black */
+        .cat-a { background-color: #dc3545; } /* Red */
+        .cat-b { background-color: #fd7e14; } /* Orange */
+        .cat-c { background-color: #0d6efd; } /* Blue */
+
+        .form-check { padding: 10px 0; border-bottom: 1px solid #f0f0f0; margin: 0; }
+        .form-check:last-child { border-bottom: none; }
+        .form-check-input { margin-right: 12px; transform: scale(1.2); }
+        
         .btn-xl { padding: 15px; font-size: 1.2rem; font-weight: bold; }
     </style>
 </head>
@@ -17,7 +32,7 @@
 
 <script>
     window.onerror = function(msg, url, line) {
-        alert("System Error:\n" + msg + "\nLine: " + line);
+        alert("System Error:\n" + msg);
         document.getElementById('loader').classList.add('hidden');
     };
 </script>
@@ -34,7 +49,7 @@
 
 <div class="container py-3" style="max-width: 600px;">
     
-    <div class="text-center mb-4">
+    <div class="text-center mb-3">
         <h4 id="veh-title" class="fw-bold">SFV Pre-Start</h4>
         <button class="btn btn-sm btn-link text-decoration-none" onclick="showQR()">Admin: Show QR Code</button>
     </div>
@@ -43,27 +58,47 @@
         
         <div class="card shadow-sm mb-3 border-primary">
             <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label fw-bold text-muted small">VEHICLE</label>
-                    <select id="vehicle" class="form-select form-select-lg" onchange="updateUI()" required>
-                        <option value="" disabled selected>Loading...</option>
-                    </select>
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <label class="form-label fw-bold text-muted small mb-0">VEHICLE</label>
+                        <select id="vehicle" class="form-select form-select-lg" onchange="updateUI()" required>
+                            <option value="" disabled selected>Loading...</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label fw-bold text-muted small mb-0">SHIFT</label>
+                        <select id="shift" class="form-select form-select-lg">
+                            <option>Day</option>
+                            <option>Night</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div id="asset-photo" class="text-center mb-3 hidden">
-                    <img src="" style="max-height: 140px; border-radius: 5px; border: 1px solid #ccc;">
+                    <img src="" style="max-height: 120px; border-radius: 5px; border: 1px solid #ccc;">
                 </div>
 
-                <div class="row g-2">
+                <div class="row g-2 mb-2">
                     <div class="col-7">
-                        <label class="form-label fw-bold text-muted small">OPERATOR</label>
+                        <label class="form-label fw-bold text-muted small mb-0">OPERATOR</label>
                         <select id="driver" class="form-select" required>
                             <option value="">Loading...</option>
                         </select>
                     </div>
                     <div class="col-5">
-                        <label class="form-label fw-bold text-muted small">PIN</label>
+                        <label class="form-label fw-bold text-muted small mb-0">PIN</label>
                         <input type="password" id="pin" class="form-control" placeholder="****" inputmode="numeric" required>
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label fw-bold text-muted small mb-0">ODOMETER (KM)</label>
+                        <input type="number" id="odo" class="form-control" placeholder="e.g. 142000" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold text-muted small mb-0">LOCATION</label>
+                        <input type="text" id="location" class="form-control" placeholder="e.g. Pit" required>
                     </div>
                 </div>
             </div>
@@ -88,16 +123,61 @@
                 </select>
             </div>
             
-            <h6 class="border-bottom pb-2 mt-4 text-primary">AEC Compliance</h6>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">Manifest & EPG Current/Dated</label></div>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">Placards Visible (Front & Rear)</label></div>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">Segregation: Detonators Locked</label></div>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">2x Fire Extinguishers Charged</label></div>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">Boxes Clean (No Residue)</label></div>
+            <div class="cat-header cat-compliance">Compliance</div>
+            <div class="chk-container">
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">SDS available</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Only 1.4S detonators on board while carrying &lt;250kgs of High Explosives</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Boxes fastened and in good order</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Placards Visible (Front & Rear)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">2x Fire Extinguishers Charged</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Boxes Clean (No Residue)</label></div>
+            </div>
             
-            <h6 class="border-bottom pb-2 mt-4 text-primary">Vehicle Condition</h6>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">Tyres / Lights / Brakes</label></div>
-            <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" required><label class="form-check-label">Two-Way Radio Functional</label></div>
+            <div class="cat-header cat-a">Category 'A' Faults</div>
+            <span class="cat-desc">Vehicle MUST NOT be operated.</span>
+            <div class="chk-container">
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Coolant level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Engine oil level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Steering fluid level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Transmission & hydraulic fluid oil level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Tyres, rims & nuts</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Head, hazard & indicator lights</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Brake, work & reverse lights</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Seats & seat belts</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Brakes & steering</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Two-way radio(s)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Horn & warning systems</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Safety devices / E-stop</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Beacon</label></div>
+            </div>
+
+            <div class="cat-header cat-b">Category 'B' Faults</div>
+            <span class="cat-desc">Authorisation required by Maintenance.</span>
+            <div class="chk-container">
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Windows, washers & mirrors</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Fire Extinguisher (Cab)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Fluid leaks</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Battery</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Flag pole & light</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Air conditioner</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">First aid kit present & stocked</label></div>
+            </div>
+
+            <div class="cat-header cat-c">Category 'C' Faults</div>
+            <span class="cat-desc">Report to Supervisor (Vehicle OK).</span>
+            <div class="chk-container">
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Vehicle panels</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Fuel level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Jack, wheel brace</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Tyre changing tools</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Spare Tyre(s)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Asset number ID present & legible</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Dirt / Vegetation build up</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Cargo barrier</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Housekeeping</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Registration plates</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Dash Camera</label></div>
+            </div>
         </div>
 
         <div id="service-checks" class="hidden p-3 mb-3 bg-white border border-danger rounded shadow-sm">
@@ -130,7 +210,6 @@
 <script>
     let vehiclesDB = [];
     const loader = document.getElementById('loader');
-    const loaderText = document.getElementById('loader-text');
 
     window.onload = function() {
         if(navigator.geolocation) {
@@ -165,9 +244,7 @@
             loader.classList.add('hidden');
         })
         .catch(err => {
-            loaderText.innerText = "Connection Failed.";
-            loaderText.classList.add("text-danger");
-            alert("Could not load data. Please refresh.");
+            alert("Connection Failed. Please Reload.");
         });
     };
 
@@ -185,9 +262,7 @@
         document.getElementById('daily-checks').classList.toggle('hidden', isSvc);
         document.getElementById('service-checks').classList.toggle('hidden', !isSvc);
         
-        const dailyInp = document.getElementById('daily-checks').querySelectorAll('input');
         const svcInp = document.getElementById('service-checks').querySelectorAll('input');
-        dailyInp.forEach(i => i.required = !isSvc);
         svcInp.forEach(i => i.required = isSvc);
         
         const btn = document.getElementById('btn-submit');
@@ -200,7 +275,7 @@
         const btn = document.getElementById('btn-submit');
         btn.disabled = true;
         loader.classList.remove('hidden');
-        loaderText.innerText = "Verifying PIN...";
+        document.getElementById('loader-text').innerText = "Verifying PIN...";
 
         const driver = document.getElementById('driver').value;
         const pin = document.getElementById('pin').value;
@@ -216,17 +291,38 @@
             return;
         }
 
-        loaderText.innerText = "Submitting...";
+        document.getElementById('loader-text').innerText = "Submitting Report...";
         let photoData = "";
         const fileInput = document.getElementById('photo');
         if(fileInput.files.length > 0) photoData = await toBase64(fileInput.files[0]);
 
+        // GATHER CHECKS
         let checks = "";
         const divId = document.getElementById('mode').value === 'SERVICE' ? 'service-checks' : 'daily-checks';
-        document.getElementById(divId).querySelectorAll('.form-check').forEach(div => {
-            const cb = div.querySelector('input');
-            if(cb.checked) checks += `☑ ${div.querySelector('label').innerText}<br>`;
-        });
+        
+        if (divId === 'daily-checks') {
+             // Loop through header sections
+             const headers = document.getElementById(divId).querySelectorAll('.cat-header');
+             headers.forEach(header => {
+                 checks += `<br><strong>${header.innerText}</strong><br>`;
+                 const container = header.nextElementSibling; // The div immediately after header
+                 container.querySelectorAll('.form-check').forEach(div => {
+                     const cb = div.querySelector('input');
+                     const lbl = div.querySelector('label').innerText;
+                     if(cb.checked) {
+                         checks += `☑ ${lbl}<br>`;
+                     } else {
+                         checks += `❌ <span style="color:red; font-weight:bold;">${lbl} (FAULT)</span><br>`;
+                     }
+                 });
+             });
+        } else {
+             // Service Mode simple loop
+             document.getElementById(divId).querySelectorAll('.form-check').forEach(div => {
+                 const cb = div.querySelector('input');
+                 if(cb.checked) checks += `☑ ${div.querySelector('label').innerText}<br>`;
+             });
+        }
 
         const vid = document.getElementById('vehicle').value;
         const veh = vehiclesDB.find(v => v[0] === vid);
@@ -234,6 +330,9 @@
         const payload = {
             vehicle: vid, rego: veh ? veh[1] : "", driver: driver,
             mode: document.getElementById('mode').value,
+            shift: document.getElementById('shift').value, // NEW
+            odo: document.getElementById('odo').value,     // NEW
+            location: document.getElementById('location').value, // NEW
             load_type: document.getElementById('load_type').value,
             gps: document.getElementById('gps').value,
             notes: document.getElementById('notes').value,
@@ -243,7 +342,7 @@
         fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
         .then(() => {
             loader.classList.add('hidden');
-            document.body.innerHTML = `<div class="d-flex flex-column justify-content-center align-items-center vh-100 text-center bg-success text-white"><h1 class="display-1">✔</h1><h2>Success</h2><p>Pre-start logged.</p><button onclick="window.location.reload()" class="btn btn-light mt-4">New Entry</button></div>`;
+            document.body.innerHTML = `<div class="d-flex flex-column justify-content-center align-items-center vh-100 text-center bg-success text-white"><h1 class="display-1">✔</h1><h2>Success</h2><p>Pre-start emailed.</p><button onclick="window.location.reload()" class="btn btn-light mt-4">New Entry</button></div>`;
         }).catch(err => {
             loader.classList.add('hidden');
             alert("Network Error."); btn.disabled = false;
