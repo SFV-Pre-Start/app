@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SFV Pre-Start</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         .hidden { display: none !important; }
         .service-mode { border: 4px solid #dc3545; background-color: #fff8f8; }
         .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
         
-        /* Stop Screen Styling */
+        /* Lock Screen */
         #stop-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:1000; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px; }
         
         /* Category Styling */
@@ -26,7 +25,7 @@
 
         .form-check { padding: 10px 0; border-bottom: 1px solid #f0f0f0; margin: 0; }
         .form-check:last-child { border-bottom: none; }
-        .form-check-input { margin-right: 12px; transform: scale(1.2); }
+        .form-check-input { margin-right: 12px; transform: scale(1.3); }
         .btn-xl { padding: 15px; font-size: 1.2rem; font-weight: bold; }
     </style>
 </head>
@@ -37,7 +36,7 @@
         alert("System Error:\n" + msg);
         document.getElementById('loader').classList.add('hidden');
     };
-    // --- YOUR VERIFIED GOOGLE SCRIPT URL ---
+    // --- GOOGLE SCRIPT URL ---
     const API_URL = "https://script.google.com/macros/s/AKfycbw6xtbL7QPCvM-D4fjw6HHBo1UgEnPq4b1UEe3m9agZKwT7iTCtoxO0rU1LZdhd5QHqCw/exec"; 
 </script>
 
@@ -57,7 +56,7 @@
     
     <div class="text-center mb-3">
         <h4 id="veh-title" class="fw-bold">SFV Pre-Start</h4>
-        <button id="btn-admin-qr" class="btn btn-sm btn-link text-decoration-none hidden" onclick="showQR()">Admin: Print QR Code</button>
+        <button id="btn-admin-qr" class="btn btn-sm btn-outline-dark hidden mb-2" onclick="showQR()">🖨️ Print QR Code</button>
     </div>
 
     <form id="app-form" onsubmit="submitForm(event)">
@@ -206,10 +205,13 @@
         <button type="submit" id="btn-submit" class="btn btn-primary w-100 btn-xl shadow">SUBMIT CHECK</button>
     </form>
     
-    <div id="qr-panel" class="hidden text-center mt-5 pt-4 border-top">
-        <h5>Vehicle QR Code</h5>
-        <div id="qrcode" class="d-flex justify-content-center my-3"></div>
-        <button onclick="window.location.reload()" class="btn btn-secondary w-100">Close</button>
+    <div id="qr-panel" class="hidden text-center mt-5 pt-4 border-top" style="background:white; position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000; overflow:auto;">
+        <h3 class="mt-4">Vehicle QR Code</h3>
+        <p class="text-muted" id="qr-label">SFV...</p>
+        <div class="d-flex justify-content-center my-3">
+            <img id="qr-image" src="" style="border:1px solid #ccc; padding:10px;">
+        </div>
+        <button onclick="window.location.reload()" class="btn btn-secondary btn-lg">Close & Return</button>
     </div>
 </div>
 
@@ -251,17 +253,17 @@
             loader.classList.add('hidden');
 
             if(vid) {
-                // QR SCAN DETECTED: UNLOCK APP
+                // QR SCAN DETECTED: Unlock App, Lock Dropdown
                 vSel.value = vid; 
                 updateUI();
                 document.getElementById('stop-screen').classList.add('hidden');
                 document.getElementById('main-container').classList.remove('hidden');
+                document.getElementById('vehicle').disabled = true; 
             } else {
-                // DIRECT ACCESS: SHOW LOCK SCREEN
+                // DIRECT ACCESS: Show Lock Screen
                 document.getElementById('stop-screen').classList.remove('hidden');
                 document.getElementById('main-container').classList.add('hidden');
             }
-            
         })
         .catch(err => {
             alert("Connection Failed. Please Reload.");
@@ -270,7 +272,7 @@
 
     function unlockAdmin() {
         const pin = prompt("Enter Admin Password:");
-        if(pin === "admin") { // Password to print stickers
+        if(pin === "admin") { 
             document.getElementById('stop-screen').classList.add('hidden');
             document.getElementById('main-container').classList.remove('hidden');
             document.getElementById('vehicle').disabled = false; // Unlock dropdown
@@ -278,6 +280,20 @@
         } else {
             alert("Incorrect");
         }
+    }
+
+    function showQR() {
+        const vid = document.getElementById('vehicle').value;
+        if(!vid) return alert("Select vehicle first.");
+        
+        // Generate Standard Printable Image
+        const baseUrl = window.location.href.split('?')[0];
+        const finalUrl = encodeURIComponent(baseUrl + "?vid=" + vid);
+        const qrApi = "https://quickchart.io/qr?text=" + finalUrl + "&size=300";
+
+        document.getElementById('qr-label').innerText = vid;
+        document.getElementById('qr-image').src = qrApi;
+        document.getElementById('qr-panel').classList.remove('hidden');
     }
 
     function updateUI() {
@@ -293,10 +309,8 @@
         const isSvc = document.getElementById('mode').value === 'SERVICE';
         document.getElementById('daily-checks').classList.toggle('hidden', isSvc);
         document.getElementById('service-checks').classList.toggle('hidden', !isSvc);
-        
         const svcInp = document.getElementById('service-checks').querySelectorAll('input');
         svcInp.forEach(i => i.required = isSvc);
-        
         const btn = document.getElementById('btn-submit');
         if(isSvc) { btn.className = "btn btn-danger w-100 btn-xl shadow"; btn.innerText = "SIGN OVER FOR SERVICE"; } 
         else { btn.className = "btn btn-primary w-100 btn-xl shadow"; btn.innerText = "SUBMIT CHECK"; }
@@ -328,10 +342,8 @@
         const fileInput = document.getElementById('photo');
         if(fileInput.files.length > 0) photoData = await toBase64(fileInput.files[0]);
 
-        // GATHER CHECKS
         let checks = "";
         const divId = document.getElementById('mode').value === 'SERVICE' ? 'service-checks' : 'daily-checks';
-        
         if (divId === 'daily-checks') {
              const headers = document.getElementById(divId).querySelectorAll('.cat-header');
              headers.forEach(header => {
@@ -339,11 +351,10 @@
                  const container = header.nextElementSibling;
                  container.querySelectorAll('.form-check').forEach(div => {
                      const cb = div.querySelector('input');
-                     const lbl = div.querySelector('label').innerText;
                      if(cb.checked) {
-                         checks += `☑ ${lbl}<br>`;
+                         checks += `☑ ${div.querySelector('label').innerText}<br>`;
                      } else {
-                         checks += `❌ <span style="color:red; font-weight:bold;">${lbl} (FAULT)</span><br>`;
+                         checks += `❌ <span style="color:red; font-weight:bold;">${div.querySelector('label').innerText} (FAULT)</span><br>`;
                      }
                  });
              });
