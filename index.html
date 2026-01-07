@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SFV Pre-Start</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         .hidden { display: none !important; }
         .service-mode { border: 4px solid #dc3545; background-color: #fff8f8; }
         .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
         
-        /* Lock Screen */
         #stop-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:1000; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 20px; }
         
-        /* Category Styling */
+        .cata-alert { border: 3px solid #dc3545; background-color: #fff0f0; padding: 15px; border-radius: 10px; margin-top: 30px; text-align: center; }
+        
         .cat-header { padding: 10px 15px; margin-top: 25px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.9rem; border-radius: 4px 4px 0 0; color: white; }
-        .cat-desc { font-size: 0.75rem; background: #fff; padding: 8px 15px; border: 1px solid #ccc; border-top: none; color: #666; font-style: italic; display: block; }
         .chk-container { border: 1px solid #ccc; border-top: none; background-color: white; padding: 5px 15px; border-radius: 0 0 4px 4px; }
         
         .cat-compliance { background-color: #212529; } 
@@ -49,7 +49,7 @@
     <h1 class="display-1">⛔</h1>
     <h2 class="mb-4">QR Scan Required</h2>
     <p class="lead text-muted">You must scan the vehicle QR code to access the pre-start.</p>
-    <button onclick="unlockAdmin()" class="btn btn-sm btn-link mt-5 text-muted">Admin Login (Print Codes)</button>
+    <button onclick="unlockAdmin()" class="btn btn-sm btn-link mt-5 text-muted">Admin Login</button>
 </div>
 
 <div class="container py-3" id="main-container" style="max-width: 600px;">
@@ -98,8 +98,8 @@
 
                 <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label fw-bold text-muted small mb-0">ODOMETER (KM)</label>
-                        <input type="number" id="odo" class="form-control" placeholder="e.g. 142000" required>
+                        <label class="form-label fw-bold text-muted small mb-0">ODOMETER</label>
+                        <input type="number" id="odo" class="form-control" placeholder="123456" required>
                     </div>
                     <div class="col-6">
                         <label class="form-label fw-bold text-muted small mb-0">LOCATION</label>
@@ -140,24 +140,23 @@
             
             <div class="cat-header cat-a">Category 'A' Faults</div>
             <span class="cat-desc">Vehicle MUST NOT be operated.</span>
-            <div class="chk-container">
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Coolant level</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Engine oil level</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Steering fluid level</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Transmission & hydraulic fluid oil level</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Tyres, rims & nuts</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Head, hazard & indicator lights</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Brake, work & reverse lights</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Seats & seat belts</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Brakes & steering</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Two-way radio(s)</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Horn & warning systems</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Safety devices / E-stop</label></div>
-                <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Beacon</label></div>
+            <div class="chk-container" id="cata-container">
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Coolant level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Engine oil level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Steering fluid level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Transmission & hydraulic fluid oil level</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Tyres, rims & nuts</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Head, hazard & indicator lights</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Brake, work & reverse lights</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Seats & seat belts</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Brakes & steering</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Two-way radio(s)</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Horn & warning systems</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Safety devices / E-stop</label></div>
+                <div class="form-check"><input type="checkbox" class="form-check-input cata-check" checked onchange="checkCatA()"><label class="form-check-label">Beacon</label></div>
             </div>
 
             <div class="cat-header cat-b">Category 'B' Faults</div>
-            <span class="cat-desc">Authorisation required by Maintenance.</span>
             <div class="chk-container">
                 <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Windows, washers & mirrors</label></div>
                 <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Fire Extinguisher (Cab)</label></div>
@@ -169,7 +168,6 @@
             </div>
 
             <div class="cat-header cat-c">Category 'C' Faults</div>
-            <span class="cat-desc">Report to Supervisor (Vehicle OK).</span>
             <div class="chk-container">
                 <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Vehicle panels</label></div>
                 <div class="form-check"><input type="checkbox" class="form-check-input" checked><label class="form-check-label">Fuel level</label></div>
@@ -187,10 +185,30 @@
 
         <div id="service-checks" class="hidden p-3 mb-3 bg-white border border-danger rounded shadow-sm">
             <h5 class="text-danger fw-bold text-center">Explosives Clearance</h5>
-            <p class="small text-center text-muted mb-3">Check required before workshop entry.</p>
             <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" id="s1"><label class="form-check-label fw-bold">HE Box (Boosters) EMPTY</label></div>
             <div class="form-check py-2 border-bottom"><input type="checkbox" class="form-check-input" id="s2"><label class="form-check-label fw-bold">Detonator Box EMPTY</label></div>
             <div class="form-check py-2"><input type="checkbox" class="form-check-input" id="s3"><label class="form-check-label">Compartments Swept Clean</label></div>
+        </div>
+        
+        <div id="cata-panel" class="cata-alert hidden">
+            <h4 class="text-danger fw-bold">⚠️ CRITICAL FAULT</h4>
+            <p class="fw-bold">You cannot operate this vehicle.</p>
+            
+            <p class="mb-1 text-start"><strong>Step 1:</strong> Select Supervisor to Alert:</p>
+            <select id="sup_mobile_select" class="form-select mb-2 border-dark border-2" onchange="updateSmsLink()">
+                <option value="" selected>-- Select Supervisor --</option>
+            </select>
+            
+            <a id="sms-btn" href="#" class="btn btn-secondary w-100 fw-bold mb-3 disabled" onclick="revealResponse()">📲 TEXT SUPERVISOR</a>
+            
+            <div id="response-area" class="hidden text-start">
+                <p class="mb-1"><strong>Step 2:</strong> Record Supervisor's Reply:</p>
+                <select id="sup_action" class="form-select border-danger fw-bold" onchange="enableSubmit()">
+                    <option value="">Select Instruction...</option>
+                    <option value="Drive to Mining Hub">Drive to Mining Hub</option>
+                    <option value="Wait for Pickup (Do Not Move)">Wait for Pickup (Do Not Move)</option>
+                </select>
+            </div>
         </div>
 
         <div class="mb-3 mt-4">
@@ -217,7 +235,9 @@
 
 <script>
     let vehiclesDB = [];
+    let supervisorList = []; 
     const loader = document.getElementById('loader');
+    let currentFaultMsg = ""; 
 
     window.onload = function() {
         if(navigator.geolocation) {
@@ -231,6 +251,9 @@
         .then(res => res.json())
         .then(data => {
             vehiclesDB = data.vehicles;
+            supervisorList = data.supervisors || []; // Get list from backend
+
+            // Populate Vehicles
             let vSel = document.getElementById('vehicle');
             vSel.innerHTML = '<option value="" disabled selected>Select Vehicle...</option>';
             data.vehicles.forEach(v => {
@@ -239,28 +262,34 @@
                 vSel.add(opt);
             });
 
+            // Populate Operators
             let dSel = document.getElementById('driver');
             dSel.innerHTML = '<option value="" disabled selected>Select Name...</option>';
             data.operators.forEach(op => {
                 let opt = document.createElement('option');
                 opt.value = op; opt.text = op; dSel.add(opt);
             });
+            
+            // Populate Supervisor Dropdown
+            let supSel = document.getElementById('sup_mobile_select');
+            supervisorList.forEach(s => {
+                let opt = document.createElement('option');
+                opt.value = s.mobile; 
+                opt.text = s.name; 
+                supSel.add(opt);
+            });
 
-            // STRICT MODE LOGIC
             const urlParams = new URLSearchParams(window.location.search);
             const vid = urlParams.get('vid');
-
             loader.classList.add('hidden');
 
             if(vid) {
-                // QR SCAN DETECTED: Unlock App, Lock Dropdown
                 vSel.value = vid; 
                 updateUI();
                 document.getElementById('stop-screen').classList.add('hidden');
                 document.getElementById('main-container').classList.remove('hidden');
                 document.getElementById('vehicle').disabled = true; 
             } else {
-                // DIRECT ACCESS: Show Lock Screen
                 document.getElementById('stop-screen').classList.remove('hidden');
                 document.getElementById('main-container').classList.add('hidden');
             }
@@ -270,13 +299,75 @@
         });
     };
 
+    // --- CAT A LOGIC ---
+    function checkCatA() {
+        const cataChecks = document.querySelectorAll('.cata-check');
+        let hasFault = false;
+        let faultNames = [];
+
+        cataChecks.forEach(chk => {
+            if(!chk.checked) {
+                hasFault = true;
+                faultNames.push(chk.nextElementSibling.innerText);
+            }
+        });
+
+        const panel = document.getElementById('cata-panel');
+        const submitBtn = document.getElementById('btn-submit');
+
+        if(hasFault) {
+            panel.classList.remove('hidden');
+            submitBtn.classList.add('hidden'); // Lock Form
+            
+            const veh = document.getElementById('vehicle').value;
+            currentFaultMsg = `CRITICAL FAULT on ${veh}: ${faultNames.join(', ')}. Instruction?`;
+            
+            updateSmsLink(); // Refresh link in case dropdown already selected
+        } else {
+            panel.classList.add('hidden');
+            submitBtn.classList.remove('hidden'); // Unlock Form
+            document.getElementById('response-area').classList.add('hidden'); // Reset flow
+            document.getElementById('sup_action').value = "";
+        }
+    }
+
+    function updateSmsLink() {
+        const mobile = document.getElementById('sup_mobile_select').value;
+        const btn = document.getElementById('sms-btn');
+        
+        if(mobile) {
+            const delim = (navigator.userAgent.toLowerCase().indexOf("iphone") > -1) ? "&" : "?";
+            btn.href = `sms:${mobile}${delim}body=${encodeURIComponent(currentFaultMsg)}`;
+            btn.classList.remove('disabled', 'btn-secondary');
+            btn.classList.add('btn-dark');
+        } else {
+            btn.classList.add('disabled', 'btn-secondary');
+            btn.classList.remove('btn-dark');
+            btn.removeAttribute('href');
+        }
+    }
+
+    function revealResponse() {
+        // Only show response area if button is active (mobile selected)
+        if(!document.getElementById('sms-btn').classList.contains('disabled')) {
+            document.getElementById('response-area').classList.remove('hidden');
+        }
+    }
+
+    function enableSubmit() {
+        if(document.getElementById('sup_action').value !== "") {
+            document.getElementById('btn-submit').classList.remove('hidden');
+        }
+    }
+    // -------------------
+
     function unlockAdmin() {
         const pin = prompt("Enter Admin Password:");
         if(pin === "admin") { 
             document.getElementById('stop-screen').classList.add('hidden');
             document.getElementById('main-container').classList.remove('hidden');
-            document.getElementById('vehicle').disabled = false; // Unlock dropdown
-            document.getElementById('btn-admin-qr').classList.remove('hidden'); // Show print button
+            document.getElementById('vehicle').disabled = false;
+            document.getElementById('btn-admin-qr').classList.remove('hidden');
         } else {
             alert("Incorrect");
         }
@@ -285,12 +376,9 @@
     function showQR() {
         const vid = document.getElementById('vehicle').value;
         if(!vid) return alert("Select vehicle first.");
-        
-        // Generate Standard Printable Image
         const baseUrl = window.location.href.split('?')[0];
         const finalUrl = encodeURIComponent(baseUrl + "?vid=" + vid);
         const qrApi = "https://quickchart.io/qr?text=" + finalUrl + "&size=300";
-
         document.getElementById('qr-label').innerText = vid;
         document.getElementById('qr-image').src = qrApi;
         document.getElementById('qr-panel').classList.remove('hidden');
@@ -365,6 +453,7 @@
              });
         }
 
+        let instruction = document.getElementById('sup_action') ? document.getElementById('sup_action').value : "";
         const vid = document.getElementById('vehicle').value;
         const veh = vehiclesDB.find(v => v[0] === vid);
 
@@ -377,7 +466,8 @@
             load_type: document.getElementById('load_type').value,
             gps: document.getElementById('gps').value,
             notes: document.getElementById('notes').value,
-            checks: checks, photo: photoData
+            checks: checks, photo: photoData,
+            instruction: instruction
         };
 
         fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
